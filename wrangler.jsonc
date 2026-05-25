@@ -12,7 +12,18 @@
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	/**
+	 * D1 Database binding
+	 * https://developers.cloudflare.com/d1/get-started/
+	 */
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "signal-desk-db",
+			"database_id": "77d9cc44-9ae4-455e-9825-139a41caebbd"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
