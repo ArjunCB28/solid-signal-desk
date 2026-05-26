@@ -7,11 +7,12 @@ function getDB(): D1Database {
   return env.DB;
 }
 
-export async function getPosts(): Promise<Post[]> {
+export async function getPosts(offset: number, limit: number): Promise<Post[]> {
   try {
     const db = getDB();
     const { results } = await db
-      .prepare("SELECT id, title, body, author, created_at FROM posts ORDER BY created_at DESC LIMIT 50")
+      .prepare("SELECT id, title, body, author, created_at FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?")
+      .bind(limit, offset)
       .all<Post>();
     return results;
   } catch (err) {

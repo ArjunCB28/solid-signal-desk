@@ -1,22 +1,27 @@
-import { action, cache, createAsync, revalidate, useSubmission } from "@solidjs/router";
-import { For } from "solid-js";
+import { action, cache, createAsync, revalidate, useSearchParams, useSubmission } from "@solidjs/router";
+import { For, createEffect, on } from "solid-js";
 import { createPost, deletePost, getPosts } from "~/lib/db";
+import { sanitizeBody, sanitizeName, sanitizeTitle } from "~/lib/sanitize";
 import type { Post } from "~/lib/types";
 
-const getPostsData = cache(async (): Promise<Post[]> => {
+const PAGE_SIZE = 5;
+
+const getPostsData = cache(async (page: number): Promise<{ posts: Post[]; hasMore: boolean }> => {
   "use server";
-  return getPosts();
+  const offset = (page - 1) * PAGE_SIZE;
+  const rows = await getPosts(offset, PAGE_SIZE + 1);
+  return { posts: rows.slice(0, PAGE_SIZE), hasMore: rows.length > PAGE_SIZE };
 }, "posts");
 
 export const route = {
-  load: () => getPostsData(),
+  load: () => getPostsData(1),
 };
 
 const createPostAction = action(async (formData: FormData) => {
   "use server";
-  const title = (formData.get("title") as string)?.trim();
-  const body = (formData.get("body") as string)?.trim();
-  const author = (formData.get("author") as string)?.trim();
+  const title = sanitizeTitle(formData.get("title") as string ?? "");
+  const body = sanitizeBody(formData.get("body") as string ?? "");
+  const author = sanitizeName(formData.get("author") as string ?? "");
   if (!title || !body || !author) return { error: "All fields required" };
   try {
     await createPost({ title, body, author });
@@ -40,8 +45,17 @@ const deletePostAction = action(async (formData: FormData) => {
 }, "deletePost");
 
 export default function Home() {
-  const posts = createAsync(() => getPostsData());
+  let formRef: HTMLFormElement | undefined;
+  const [params, setParams] = useSearchParams();
+  const page = () => Math.max(1, Number(params.page || 1));
+  const data = createAsync(() => getPostsData(page()));
   const createSub = useSubmission(createPostAction);
+
+  createEffect(on(() => createSub.pending, (pending, prevPending) => {
+    if (prevPending && !pending && !createSub.result?.error) {
+      formRef?.reset();
+    }
+  }, { defer: true }));
 
   return (
     <main class="container">
@@ -49,18 +63,18 @@ export default function Home() {
 
       <section class="create-form">
         <h2>New Post</h2>
-        <form action={createPostAction} method="post">
+        <form ref={formRef} action={createPostAction} method="post">
           <div class="field">
             <label for="title">Title</label>
-            <input id="title" name="title" type="text" required maxLength={200} placeholder="What's the update?" />
+            <input id="title" name="title" type="text" required maxLength={30} placeholder="What's the update?" />
           </div>
           <div class="field">
             <label for="body">Body</label>
-            <textarea id="body" name="body" required rows={4} placeholder="Share more details..." />
+            <textarea id="body" name="body" required rows={4} maxLength={100} placeholder="Share more details..." />
           </div>
           <div class="field">
             <label for="author">Your name</label>
-            <input id="author" name="author" type="text" required maxLength={100} placeholder="Jane Smith" />
+            <input id="author" name="author" type="text" required maxLength={30} placeholder="Jane Smith" />
           </div>
           <button type="submit">Post update</button>
           {createSub.result?.error && (
@@ -71,7 +85,7 @@ export default function Home() {
 
       <section class="feed">
         <h2>Recent updates</h2>
-        <For each={posts()} fallback={<p class="empty">No posts yet. Be the first!</p>}>
+        <For each={data()?.posts} fallback={<p class="empty">No posts yet. Be the first!</p>}>
           {(post) => (
             <article class="post-card">
               <div class="post-header">
@@ -94,6 +108,25 @@ export default function Home() {
             </article>
           )}
         </For>
+        <div class="pagination">
+          <button
+            type="button"
+            class="pagination-btn"
+            disabled={page() <= 1}
+            onClick={() => setParams({ page: page() - 1 })}
+          >
+            ← Prev
+          </button>
+          <span class="pagination-info">Page {page()}</span>
+          <button
+            type="button"
+            class="pagination-btn"
+            disabled={!data()?.hasMore}
+            onClick={() => setParams({ page: page() + 1 })}
+          >
+            Next →
+          </button>
+        </div>
       </section>
     </main>
   );

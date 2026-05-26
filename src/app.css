@@ -110,12 +110,17 @@ button[type="submit"]:hover {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .post-body {
   margin: 0 0 0.75rem;
   line-height: 1.5;
   color: #333;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .post-meta {
@@ -128,6 +133,8 @@ button[type="submit"]:hover {
 .author {
   font-weight: 500;
   color: #555;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .delete-btn {
@@ -151,4 +158,38 @@ button[type="submit"]:hover {
   border-color: #e53e3e;
   color: #e53e3e;
   background: #fff5f5;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.pagination-btn {
+  background: #fff;
+  color: #335d92;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f0f5ff;
+  border-color: #335d92;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: #666;
 }
