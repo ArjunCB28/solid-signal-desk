@@ -86,7 +86,7 @@ button[type="submit"]:hover {
 }
 
 .empty {
-  color: #888;
+  color: #666;
   font-style: italic;
 }
 
@@ -122,7 +122,7 @@ button[type="submit"]:hover {
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
-  color: #888;
+  color: #666;
 }
 
 .author {
@@ -136,7 +136,7 @@ button[type="submit"]:hover {
   border-radius: 4px;
   padding: 2px 10px;
   font-size: 0.8rem;
-  color: #999;
+  color: #666;
   cursor: pointer;
   white-space: nowrap;
 }
