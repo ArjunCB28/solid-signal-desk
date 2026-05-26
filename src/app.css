@@ -141,6 +141,12 @@ button[type="submit"]:hover {
   white-space: nowrap;
 }
 
+.error {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0;
+}
+
 .delete-btn:hover {
   border-color: #e53e3e;
   color: #e53e3e;

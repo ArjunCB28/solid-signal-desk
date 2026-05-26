@@ -8,25 +8,37 @@ function getDB(): D1Database {
 }
 
 export async function getPosts(): Promise<Post[]> {
-  const db = getDB();
-  const { results } = await db
-    .prepare("SELECT id, title, body, author, created_at FROM posts ORDER BY created_at DESC LIMIT 50")
-    .all<Post>();
-  return results;
+  try {
+    const db = getDB();
+    const { results } = await db
+      .prepare("SELECT id, title, body, author, created_at FROM posts ORDER BY created_at DESC LIMIT 50")
+      .all<Post>();
+    return results;
+  } catch (err) {
+    throw new Error("Failed to load posts");
+  }
 }
 
 export async function createPost(data: CreatePostInput): Promise<void> {
-  const db = getDB();
-  await db
-    .prepare("INSERT INTO posts (title, body, author) VALUES (?, ?, ?)")
-    .bind(data.title, data.body, data.author)
-    .run();
+  try {
+    const db = getDB();
+    await db
+      .prepare("INSERT INTO posts (title, body, author) VALUES (?, ?, ?)")
+      .bind(data.title, data.body, data.author)
+      .run();
+  } catch (err) {
+    throw new Error("Failed to create post");
+  }
 }
 
 export async function deletePost(id: number, author: string): Promise<void> {
-  const db = getDB();
-  await db
-    .prepare("DELETE FROM posts WHERE id = ? AND author = ?")
-    .bind(id, author)
-    .run();
+  try {
+    const db = getDB();
+    await db
+      .prepare("DELETE FROM posts WHERE id = ? AND author = ?")
+      .bind(id, author)
+      .run();
+  } catch (err) {
+    throw new Error("Failed to delete post");
+  }
 }

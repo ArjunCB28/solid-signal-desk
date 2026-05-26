@@ -1,4 +1,4 @@
-import { action, cache, createAsync, revalidate } from "@solidjs/router";
+import { action, cache, createAsync, revalidate, useSubmission } from "@solidjs/router";
 import { For } from "solid-js";
 import { createPost, deletePost, getPosts } from "~/lib/db";
 import type { Post } from "~/lib/types";
@@ -18,7 +18,11 @@ const createPostAction = action(async (formData: FormData) => {
   const body = (formData.get("body") as string)?.trim();
   const author = (formData.get("author") as string)?.trim();
   if (!title || !body || !author) return { error: "All fields required" };
-  await createPost({ title, body, author });
+  try {
+    await createPost({ title, body, author });
+  } catch {
+    return { error: "Failed to save post. Please try again." };
+  }
   return revalidate(getPostsData.key);
 }, "createPost");
 
@@ -27,12 +31,17 @@ const deletePostAction = action(async (formData: FormData) => {
   const id = Number(formData.get("id"));
   const author = formData.get("author") as string;
   if (!id || !author) return;
-  await deletePost(id, author);
+  try {
+    await deletePost(id, author);
+  } catch {
+    return;
+  }
   return revalidate(getPostsData.key);
 }, "deletePost");
 
 export default function Home() {
   const posts = createAsync(() => getPostsData());
+  const createSub = useSubmission(createPostAction);
 
   return (
     <main class="container">
@@ -54,6 +63,9 @@ export default function Home() {
             <input id="author" name="author" type="text" required maxLength={100} placeholder="Jane Smith" />
           </div>
           <button type="submit">Post update</button>
+          {createSub.result?.error && (
+            <p class="error">{createSub.result.error}</p>
+          )}
         </form>
       </section>
 
